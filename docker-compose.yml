@@ -1,0 +1,34 @@
+version: '3.8' 
+
+services:
+  openam:
+    image: openidentityplatform/openam
+    container_name: openam
+    volumes:
+      - ./data/openam:/usr/openam/config
+    ports:
+      - "8080:8080"
+      - "1689:1689"
+      - "4445:4444"
+      - "50389:50389"
+    user: root
+    networks:
+      - my-net
+
+  opendj:
+    image: openidentityplatform/opendj
+    container_name: opendj
+    volumes:
+      - ./data/opendj:/usr/opendj/config
+    ports:  
+      - "1389:1389"
+      - "4444:4444"
+      - "1636:1636"      
+    user: root
+    networks:
+      - my-net
+
+networks:
+  my-net:
+    driver: bridge
+      
