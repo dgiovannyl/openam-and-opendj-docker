@@ -1,8 +1,27 @@
 version: '3.8' 
 
 services:
+  
+
+  opendj:
+    build:
+      context: ./opendj
+      dockerfile: ./Dockerfile
+    container_name: opendj
+    volumes:
+      - ./data/opendj:/usr/opendj/config
+    ports:  
+      - "1389:1389"
+      - "4444:4444"
+      - "1636:1636"      
+    user: root
+    networks:
+      - my-net
+
   openam:
-    image: openidentityplatform/openam
+    build:
+      context: ./openam
+      dockerfile: ./Dockerfile
     container_name: openam
     volumes:
       - ./data/openam:/usr/openam/config
@@ -14,19 +33,12 @@ services:
     user: root
     networks:
       - my-net
-
-  opendj:
-    image: openidentityplatform/opendj
-    container_name: opendj
-    volumes:
-      - ./data/opendj:/usr/opendj/config
-    ports:  
-      - "1389:1389"
-      - "4444:4444"
-      - "1636:1636"      
-    user: root
-    networks:
-      - my-net
+    extra_hosts:
+      - "openam.test.com:127.0.0.1"
+    depends_on: 
+      - opendj
+    links:
+      - opendj
 
 networks:
   my-net:

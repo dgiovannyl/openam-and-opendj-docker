@@ -1,0 +1,4 @@
+dn: ou=people,dc=example,dc=com
+objectClass: organizationalunit
+objectClass: top
+ou: people
