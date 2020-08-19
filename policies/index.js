@@ -114,19 +114,19 @@ function createResourceType(token, json, callback) {
 
   const resourceInfo = JSON.stringify({
     name: "URLAtlas",
-    actions: {
-      "order-logs-options": true,
-      "order-status-report-option": true,
-      "user-logs-option": true,
-      "reports-menu": true,
+    actions: {      
       "approvals-menu": true,
       "settings-menu": true,
+      "order-logs-options": true,
+      "order-status-report-option": true,
       "request-forward-stocked-item": true,
+      "user-logs-option": true,
       "new-item-for-user": true,
       "self-diagnosis": true,
       "new-forward-stocked-item": true,
+      "reports-menu": true,
       "actions-menu": true,
-      "self-diagnosis-menu": true,
+      "self-diagnosis-menu": true
     },
     patterns: ["http://localhost:80/layout/actions/request-type"],
   });
@@ -240,11 +240,11 @@ function addPolicyToPolicySet(token, resourceTypeUuid, policySetName, json, call
         "actionValues": {
            "approvals-menu": true,
             "settings-menu": true,
-            "request-forward-stocked-item": true,
             "order-logs-options": true,
             "order-status-report-option": true,
-            "new-item-for-user": true,
+            "request-forward-stocked-item": true,
             "user-logs-option": true,
+            "new-item-for-user": true,
             "self-diagnosis": false,
             "new-forward-stocked-item": true,
             "reports-menu": true,
