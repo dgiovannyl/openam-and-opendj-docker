@@ -27,29 +27,7 @@ app.get("/", function (req, res) {
 });
 
 app
-  .route("/openAmSetup")
-  .get(function (req, res) {
-    respuesta = {
-      error: false,
-      codigo: 200,
-      mensaje: "",
-    };
-    if (usuario.nombre === "" || usuario.apellido === "") {
-      respuesta = {
-        error: true,
-        codigo: 501,
-        mensaje: "El usuario no ha sido creado",
-      };
-    } else {
-      respuesta = {
-        error: false,
-        codigo: 200,
-        mensaje: "respuesta del usuario",
-        respuesta: usuario,
-      };
-    }
-    res.send(respuesta);
-  })
+  .route("/openAmSetup")  
   .post(function (req, res) {
     const url =
       "http://localhost:8080/openam/json/realms/root/authenticate?goto=http://use1alx223.apexsct.net/";
@@ -63,15 +41,14 @@ app
     getToken(url, amUser, amPassword, function (resultObject) {
       const loginInfo = JSON.parse(resultObject);
       createResourceType(loginInfo.tokenId, "json", function (createResourceTypeResult) {
-        console.log(createResourceTypeResult);        
-        response.resourceType = createResourceTypeResult;        
-        createPolicySet(loginInfo.tokenId, "json", function (createPolicySetResult) {
+        const resourceTypeInfo = JSON.parse(createResourceTypeResult);
+        response.resourceType = resourceTypeInfo;                
+        createPolicySet(loginInfo.tokenId, resourceTypeInfo.uuid, "json", function (createPolicySetResult) {
             const policySetInfo = JSON.parse(createPolicySetResult);
-            console.log(createPolicySetResult);
-            response.policySet = createPolicySetResult;
-            addPolicyToPolicySet(loginInfo.tokenId, createResourceTypeResult.uuid, policySetInfo.name, "json", function (addPolicyToPolicySetResult) {
-                console.log(addPolicyToPolicySetResult);
-                response.policySetPolicy = addPolicyToPolicySetResult;
+            response.policySet = policySetInfo;
+            addPolicyToPolicySet(loginInfo.tokenId, resourceTypeInfo.uuid, policySetInfo.name, "json", function (addPolicyToPolicySetResult) {
+                const policySetPolicyInfo = JSON.parse(createPolicySetResult);
+                response.policySetPolicy = policySetPolicyInfo;
                 res.send(response);
             });
         });
@@ -113,7 +90,7 @@ function createResourceType(token, json, callback) {
   const url = "http://localhost:8080/openam/json/realms/root/resourcetypes/?_action=create";
 
   const resourceInfo = JSON.stringify({
-    name: "URLAtlas",
+    name: "ATLAS",
     actions: {      
       "approvals-menu": true,
       "settings-menu": true,
@@ -148,14 +125,14 @@ function createResourceType(token, json, callback) {
   });
 }
 
-function createPolicySet(token, json, callback) {
+function createPolicySet(token, resourceTypeUuid, json, callback) {
   console.log(token);
   const url =
     "http://localhost:8080/openam/json/realms/root/applications/?_action=create";
 
   const policyInfo = JSON.stringify({
     name: "mypolicyset",
-    resourceTypeUuids: ["76656a38-5f8e-401b-83aa-4ccb74ce88d2"],
+    resourceTypeUuids: [resourceTypeUuid],
     realm: "/",
     conditions: [
       "LEAuthLevel",
