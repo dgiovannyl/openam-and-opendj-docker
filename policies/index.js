@@ -27,32 +27,67 @@ app.get("/", function (req, res) {
 });
 
 app
-  .route("/openAmSetup")  
+  .route("/openAmSetup")
   .post(function (req, res) {
     const url =
       "http://localhost:8080/openam/json/realms/root/authenticate?goto=http://use1alx223.apexsct.net/";
     const amUser = "amAdmin";
     const amPassword = "11111111";
     let response = {
-        resourceType: {},
-        policySet: {},
-        policySetPolicy: {}
+      resourceType: {},
+      policySet: {},
+      policySetPolicy: {}
     }
     getToken(url, amUser, amPassword, function (resultObject) {
       const loginInfo = JSON.parse(resultObject);
       createResourceType(loginInfo.tokenId, "json", function (createResourceTypeResult) {
         const resourceTypeInfo = JSON.parse(createResourceTypeResult);
-        response.resourceType = resourceTypeInfo;                
+        response.resourceType = resourceTypeInfo;
         createPolicySet(loginInfo.tokenId, resourceTypeInfo.uuid, "json", function (createPolicySetResult) {
-            const policySetInfo = JSON.parse(createPolicySetResult);
-            response.policySet = policySetInfo;
-            addPolicyToPolicySet(loginInfo.tokenId, resourceTypeInfo.uuid, policySetInfo.name, "json", function (addPolicyToPolicySetResult) {
-                const policySetPolicyInfo = JSON.parse(createPolicySetResult);
-                response.policySetPolicy = policySetPolicyInfo;
-                res.send(response);
-            });
+          const policySetInfo = JSON.parse(createPolicySetResult);
+          response.policySet = policySetInfo;
+          addPolicyToPolicySet(loginInfo.tokenId, resourceTypeInfo.uuid, policySetInfo.name, "json", function (addPolicyToPolicySetResult) {
+            const policySetPolicyInfo = JSON.parse(createPolicySetResult);
+            response.policySetPolicy = policySetPolicyInfo;
+            res.send(response);
+          });
         });
-      });      
+      });
+    });
+  });
+
+app
+  .route("/openAmAddUser")
+  .post(function (req, res) {
+    const url =
+      "http://localhost:8080/openam/json/realms/root/authenticate?goto=http://use1alx223.apexsct.net/";
+    const amUser = "amAdmin";
+    const amPassword = "11111111";
+    let response = {
+      username: "",
+      realm: "",
+      universalid: {},
+      dn: {},
+      cn: {},
+      uniqueMember: {},
+      objectclass: {}
+    }
+    getToken(url, amUser, amPassword, function (resultgetToken) {
+      const loginInfo = JSON.parse(resultgetToken);
+      console.log();
+      createUser(loginInfo.tokenId, "username3", "userpassword", "username1@mail.com", function (resultcreateUser) {
+        const createUserInfo = JSON.parse(resultcreateUser);
+        console.log(createUserInfo);
+        createGroup(loginInfo.tokenId, "newgroup3", function (resultcreateGroup) {
+          const createGroupInfo = JSON.parse(resultcreateGroup);
+          console.log(createGroupInfo);
+          addUserToGroup(loginInfo.tokenId, "username3", "newgroup3", function (resultaddUserToGroup) {
+            const addUserToGroupInfo = JSON.parse(resultaddUserToGroup);
+            console.log(addUserToGroupInfo);
+            res.send(response);
+          });
+        });
+      });
     });
   });
 
@@ -70,6 +105,7 @@ app.listen(3000, () => {
 });
 
 function getToken(url, amUser, amPassword, callback) {
+  console.log("getToken");
   const options = {
     url: url,
     method: "POST",
@@ -81,7 +117,7 @@ function getToken(url, amUser, amPassword, callback) {
     },
   };
 
-  request(options, function (error, response, body) {    
+  request(options, function (error, response, body) {
     callback(body);
   });
 }
@@ -91,7 +127,7 @@ function createResourceType(token, json, callback) {
 
   const resourceInfo = JSON.stringify({
     name: "ATLAS",
-    actions: {      
+    actions: {
       "approvals-menu": true,
       "settings-menu": true,
       "order-logs-options": true,
@@ -112,15 +148,15 @@ function createResourceType(token, json, callback) {
     url: url,
     method: "POST",
     headers: {
-        Accept: "application/json",
-        "content-type": "application/json",
-        iPlanetDirectoryPro: token,
-        "Accept-API-Version": "resource=1.0",
+      Accept: "application/json",
+      "content-type": "application/json",
+      iPlanetDirectoryPro: token,
+      "Accept-API-Version": "resource=1.0",
     },
     body: resourceInfo,
   };
 
-  request(options, function (error, response, body) {    
+  request(options, function (error, response, body) {
     callback(body);
   });
 }
@@ -197,64 +233,136 @@ function createPolicySet(token, resourceTypeUuid, json, callback) {
 
 function addPolicyToPolicySet(token, resourceTypeUuid, policySetName, json, callback) {
 
-    console.log(resourceTypeUuid, policySetName);
+  console.log(resourceTypeUuid, policySetName);
 
-    const url =
-      "http://localhost:8080/openam/json/realms/root/policies?_action=create";
-    const options = {
-      url: url,
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        iPlanetDirectoryPro: token,
-        "Accept-API-Version": "resource=1.0",
+  const url =
+    "http://localhost:8080/openam/json/realms/root/policies?_action=create";
+  const options = {
+    url: url,
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      iPlanetDirectoryPro: token,
+      "Accept-API-Version": "resource=1.0",
+    },
+    body: JSON.stringify({
+      "name": "mypolicy",
+      "active": true,
+      "description": "My Policy.",
+      "applicationName": policySetName,
+      "actionValues": {
+        "approvals-menu": true,
+        "settings-menu": true,
+        "order-logs-options": true,
+        "order-status-report-option": true,
+        "request-forward-stocked-item": true,
+        "user-logs-option": true,
+        "new-item-for-user": true,
+        "self-diagnosis": false,
+        "new-forward-stocked-item": true,
+        "reports-menu": true,
+        "actions-menu": true,
+        "self-diagnosis-menu": true
       },
-      body: JSON.stringify({
-        "name": "mypolicy",
-        "active": true,
-        "description": "My Policy.",
-        "applicationName": policySetName,
-        "actionValues": {
-           "approvals-menu": true,
-            "settings-menu": true,
-            "order-logs-options": true,
-            "order-status-report-option": true,
-            "request-forward-stocked-item": true,
-            "user-logs-option": true,
-            "new-item-for-user": true,
-            "self-diagnosis": false,
-            "new-forward-stocked-item": true,
-            "reports-menu": true,
-            "actions-menu": true,
-            "self-diagnosis-menu": true
-        },
-        "resources": [
-            "http://localhost:80/layout/actions/request-type"
-        ],
-        "subject": {
-            "type": "AND",
-            "subjects": [
-                {
-                    "type": "AuthenticatedUsers"
-                },
-                {
-                    "type": "Identity",
-                    "subjectValues": [
-                        "id=L1,ou=group,dc=openam,dc=openidentityplatform,dc=org"
-                    ]
-                }
+      "resources": [
+        "http://localhost:80/layout/actions/request-type"
+      ],
+      "subject": {
+        "type": "AND",
+        "subjects": [
+          {
+            "type": "AuthenticatedUsers"
+          },
+          {
+            "type": "Identity",
+            "subjectValues": [
+              "id=L1,ou=group,dc=openam,dc=openidentityplatform,dc=org"
             ]
-        },
-        "resourceTypeUuid": resourceTypeUuid
+          }
+        ]
+      },
+      "resourceTypeUuid": resourceTypeUuid
     }),
-    };
-  
-    request(options, function (error, response, body) {
-      //let json = JSON.parse(body);
-      //console.log(err, res, body);
-      ///var responseObject = response.headers;
-      //responseObject.body = body;
-      //console.log(responseObject);
-      callback(body);
-    });
-  }
+  };
+
+  request(options, function (error, response, body) {
+    //let json = JSON.parse(body);
+    //console.log(err, res, body);
+    ///var responseObject = response.headers;
+    //responseObject.body = body;
+    //console.log(responseObject);
+    callback(body);
+  });
+}
+
+function createUser(token, username, userpassword, mail, callback) {
+  console.log(`createUser ${username}`);
+  const url = "http://localhost:8080/openam/json/realms/root/users/?_action=create";
+  const createUserInfo = JSON.stringify({
+    username: username,
+    userpassword: userpassword,
+    mail: mail
+  });
+
+  const options = {
+    url: url,
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      iPlanetDirectoryPro: token,
+      "Accept-API-Version": "protocol=2.1,resource=3.0",
+    },
+    body: createUserInfo,
+  };
+
+  request.post(options, function (error, response, body) {
+    callback(body);
+  });
+}
+
+function createGroup(token, groupname, callback) {
+  console.log(`createGroup ${groupname}`);
+  const url = "http://localhost:8080/openam/json/realms/root/groups?_action=create";
+  const createGroupInfo = JSON.stringify({
+    username: groupname
+  });
+
+  const options = {
+    url: url,
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      iPlanetDirectoryPro: token,
+      "Accept-API-Version": "resource=1.0",
+    },
+    body: createGroupInfo,
+  };
+
+  request.post(options, function (error, response, body) {
+    callback(body);
+  });
+}
+
+function addUserToGroup(token, username, groupname, callback) {
+  console.log(`addUserToGroup ${username} ${groupname}`);
+  const url = `http://localhost:8080/openam/json/realms/root/groups/${groupname}`;
+  const members = [`uid=${groupname},ou=user,dc=openam,dc=forgerock,dc=org`];
+  const createGroupInfo = JSON.stringify({
+    uniquemember: members
+  });
+  console.log(`createGroupInfo ${createGroupInfo}`);
+  const options = {
+    url: url,
+    method: "PUT",
+    headers: {
+      "content-type": "application/json",
+      iPlanetDirectoryPro: token,
+      "Accept-API-Version": "protocol=1.0,resource=1.0",
+    },
+    body: createGroupInfo,
+  };
+
+  request.post(options, function (error, response, body) {
+    callback(body);
+  });
+}
