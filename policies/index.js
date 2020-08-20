@@ -74,16 +74,21 @@ app
     }
     getToken(url, amUser, amPassword, function (resultgetToken) {
       const loginInfo = JSON.parse(resultgetToken);
-      console.log();
-      createUser(loginInfo.tokenId, "username3", "userpassword", "username1@mail.com", function (resultcreateUser) {
+      console.log(`loginInfo`);
+      console.log(loginInfo);
+      createUser(loginInfo.tokenId, "username12", "userpassword", "username12@mail.com", function (resultcreateUser) {
         const createUserInfo = JSON.parse(resultcreateUser);
+        console.log(`createUserInfo`);
         console.log(createUserInfo);
-        createGroup(loginInfo.tokenId, "newgroup3", function (resultcreateGroup) {
+        createGroup(loginInfo.tokenId, "newgroup12", function (resultcreateGroup) {
           const createGroupInfo = JSON.parse(resultcreateGroup);
+          console.log(`createGroupInfo`);
           console.log(createGroupInfo);
-          addUserToGroup(loginInfo.tokenId, "username3", "newgroup3", function (resultaddUserToGroup) {
+          addUserToGroup(loginInfo.tokenId, "username12", "newgroup12", function (resultaddUserToGroup) {
             const addUserToGroupInfo = JSON.parse(resultaddUserToGroup);
+            console.log(`addUserToGroupInfo`);
             console.log(addUserToGroupInfo);
+            response=addUserToGroupInfo;
             res.send(response);
           });
         });
@@ -163,9 +168,7 @@ function createResourceType(token, json, callback) {
 
 function createPolicySet(token, resourceTypeUuid, json, callback) {
   console.log(token);
-  const url =
-    "http://localhost:8080/openam/json/realms/root/applications/?_action=create";
-
+  const url = "http://localhost:8080/openam/json/realms/root/applications/?_action=create";
   const policyInfo = JSON.stringify({
     name: "mypolicyset",
     resourceTypeUuids: [resourceTypeUuid],
@@ -232,11 +235,8 @@ function createPolicySet(token, resourceTypeUuid, json, callback) {
 }
 
 function addPolicyToPolicySet(token, resourceTypeUuid, policySetName, json, callback) {
-
   console.log(resourceTypeUuid, policySetName);
-
-  const url =
-    "http://localhost:8080/openam/json/realms/root/policies?_action=create";
+  const url = "http://localhost:8080/openam/json/realms/root/policies?_action=create";
   const options = {
     url: url,
     method: "POST",
@@ -303,18 +303,16 @@ function createUser(token, username, userpassword, mail, callback) {
     userpassword: userpassword,
     mail: mail
   });
-
   const options = {
     url: url,
     method: "POST",
     headers: {
       "content-type": "application/json",
-      iPlanetDirectoryPro: token,
+      "iPlanetDirectoryPro": token,
       "Accept-API-Version": "protocol=2.1,resource=3.0",
     },
     body: createUserInfo,
   };
-
   request.post(options, function (error, response, body) {
     callback(body);
   });
@@ -332,7 +330,7 @@ function createGroup(token, groupname, callback) {
     method: "POST",
     headers: {
       "content-type": "application/json",
-      iPlanetDirectoryPro: token,
+      "iPlanetDirectoryPro": token,
       "Accept-API-Version": "resource=1.0",
     },
     body: createGroupInfo,
@@ -346,7 +344,9 @@ function createGroup(token, groupname, callback) {
 function addUserToGroup(token, username, groupname, callback) {
   console.log(`addUserToGroup ${username} ${groupname}`);
   const url = `http://localhost:8080/openam/json/realms/root/groups/${groupname}`;
+  console.log(`url ${url}`);
   const members = [`uid=${groupname},ou=user,dc=openam,dc=forgerock,dc=org`];
+  console.log(`members ${members}`);
   const createGroupInfo = JSON.stringify({
     uniquemember: members
   });
@@ -356,13 +356,13 @@ function addUserToGroup(token, username, groupname, callback) {
     method: "PUT",
     headers: {
       "content-type": "application/json",
-      iPlanetDirectoryPro: token,
+      "iPlanetDirectoryPro": token,
       "Accept-API-Version": "protocol=1.0,resource=1.0",
     },
     body: createGroupInfo,
   };
 
-  request.post(options, function (error, response, body) {
+  request.put(options, function (error, response, body) {
     callback(body);
   });
 }
