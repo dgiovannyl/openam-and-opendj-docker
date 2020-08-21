@@ -34,7 +34,7 @@ app
     const url =
       "http://localhost:8080/openam/json/realms/root/authenticate?goto=http://use1alx223.apexsct.net/";
     const amUser = "amAdmin";
-    const amPassword = "11111111";
+    const amPassword = "rootroot";
     let response = {
       resourceType: {},
       policySet: {},
@@ -66,7 +66,7 @@ app
     const url =
       "http://localhost:8080/openam/json/realms/root/authenticate?goto=http://use1alx223.apexsct.net/";
     const amUser = "amAdmin";
-    const amPassword = "11111111";
+    const amPassword = "rootroot";
     let response = {
       username: "",
       realm: "",
@@ -88,12 +88,17 @@ app
           const createGroupInfo = JSON.parse(resultcreateGroup);
           console.log(`createGroupInfo`);
           console.log(createGroupInfo);
-          addUserToGroup(loginInfo.tokenId, req.body.UserName, req.body.Group, function (resultaddUserToGroup) {
-            const addUserToGroupInfo = JSON.parse(resultaddUserToGroup);
-            console.log(`addUserToGroupInfo`);
-            console.log(addUserToGroupInfo);
-            response = addUserToGroupInfo;
-            res.send(response);
+          getUsersfromGroup(loginInfo.tokenId, req.body.Group, function (resultagetUsersfromGroup) {
+            const getUsersfromGroupInfo = JSON.parse(resultagetUsersfromGroup);
+            console.log(`getUsersfromGroupInfo`);
+            console.log(getUsersfromGroupInfo);
+            addUserToGroup(loginInfo.tokenId, req.body.UserName, req.body.Group, getUsersfromGroupInfo.body?.uniqueMember, function (resultaddUserToGroup) {
+              const addUserToGroupInfo = JSON.parse(resultaddUserToGroup);
+              console.log(`addUserToGroupInfo`);
+              console.log(addUserToGroupInfo);
+              response = addUserToGroupInfo;
+              res.send(response);
+            });
           });
         });
       });
@@ -343,11 +348,12 @@ function createGroup(token, groupname, callback) {
   });
 }
 
-function addUserToGroup(token, username, groupname, callback) {
+function addUserToGroup(token, username, groupname, currentUsers, callback) {
   console.log(`addUserToGroup ${username} ${groupname}`);
   const url = `http://localhost:8080/openam/json/realms/root/groups/${groupname}`;
   console.log(`url ${url}`);
-  const members = [`uid=${username},ou=user,dc=openam,dc=forgerock,dc=org`];
+  //const members = [`uid=${username},ou=user,dc=openam,dc=forgerock,dc=org`];
+  const members = [`uid=${username},ou=people,dc=openam,dc=openidentityplatform,dc=org`];
   console.log(`members ${members}`);
   const createGroupInfo = JSON.stringify({
     uniquemember: members
@@ -365,6 +371,23 @@ function addUserToGroup(token, username, groupname, callback) {
   };
 
   request.put(options, function (error, response, body) {
+    callback(body);
+  });
+}
+
+function getUsersfromGroup(token, groupname, callback) {
+  console.log(`getUsersfromGroup ${groupname}`);
+  const url = `http://localhost:8080/openam/json/realms/root/groups/${groupname}`;
+  const options = {
+    url: url,
+    method: "GET",
+    headers: {
+      "content-type": "application/json",
+      "iPlanetDirectoryPro": token,
+    }
+  };
+
+  request.get(options, function (error, response, body) {
     callback(body);
   });
 }
