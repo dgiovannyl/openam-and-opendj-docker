@@ -29,10 +29,12 @@ app.get("/", function (req, res) {
 app
   .route("/openAmSetup")
   .post(function (req, res) {
+    console.log(`req`);
+    console.log(req.body);
     const url =
       "http://localhost:8080/openam/json/realms/root/authenticate?goto=http://use1alx223.apexsct.net/";
     const amUser = "amAdmin";
-    const amPassword = "11111111";
+    const amPassword = "rootroot";
     let response = {
       resourceType: {},
       policySet: {},
@@ -40,13 +42,13 @@ app
     }
     getToken(url, amUser, amPassword, function (resultObject) {
       const loginInfo = JSON.parse(resultObject);
-      createResourceType(loginInfo.tokenId, "json", function (createResourceTypeResult) {
+      createResourceType(loginInfo.tokenId, req.body, function (createResourceTypeResult) {
         const resourceTypeInfo = JSON.parse(createResourceTypeResult);
         response.resourceType = resourceTypeInfo;
-        createPolicySet(loginInfo.tokenId, resourceTypeInfo.uuid, "json", function (createPolicySetResult) {
+        createPolicySet(loginInfo.tokenId, resourceTypeInfo.uuid, req.body, function (createPolicySetResult) {
           const policySetInfo = JSON.parse(createPolicySetResult);
           response.policySet = policySetInfo;
-          addPolicyToPolicySet(loginInfo.tokenId, resourceTypeInfo.uuid, policySetInfo.name, "json", function (addPolicyToPolicySetResult) {
+          addPolicyToPolicySet(loginInfo.tokenId, resourceTypeInfo.uuid, policySetInfo.name,  req.body, function (addPolicyToPolicySetResult) {
             const policySetPolicyInfo = JSON.parse(createPolicySetResult);
             response.policySetPolicy = policySetPolicyInfo;
             res.send(response);
@@ -59,10 +61,12 @@ app
 app
   .route("/openAmAddUser")
   .post(function (req, res) {
+    console.log(`req`);
+    console.log(req.body);
     const url =
       "http://localhost:8080/openam/json/realms/root/authenticate?goto=http://use1alx223.apexsct.net/";
     const amUser = "amAdmin";
-    const amPassword = "11111111";
+    const amPassword = "rootroot";
     let response = {
       username: "",
       realm: "",
@@ -76,19 +80,19 @@ app
       const loginInfo = JSON.parse(resultgetToken);
       console.log(`loginInfo`);
       console.log(loginInfo);
-      createUser(loginInfo.tokenId, "username12", "userpassword", "username12@mail.com", function (resultcreateUser) {
+      createUser(loginInfo.tokenId, req.body.UserName, req.body.UserPassword, req.body.UserMail, function (resultcreateUser) {
         const createUserInfo = JSON.parse(resultcreateUser);
         console.log(`createUserInfo`);
         console.log(createUserInfo);
-        createGroup(loginInfo.tokenId, "newgroup12", function (resultcreateGroup) {
+        createGroup(loginInfo.tokenId, req.body.Group, function (resultcreateGroup) {
           const createGroupInfo = JSON.parse(resultcreateGroup);
           console.log(`createGroupInfo`);
           console.log(createGroupInfo);
-          addUserToGroup(loginInfo.tokenId, "username12", "newgroup12", function (resultaddUserToGroup) {
+          addUserToGroup(loginInfo.tokenId, req.body.UserName, req.body.Group, function (resultaddUserToGroup) {
             const addUserToGroupInfo = JSON.parse(resultaddUserToGroup);
             console.log(`addUserToGroupInfo`);
             console.log(addUserToGroupInfo);
-            response=addUserToGroupInfo;
+            response = addUserToGroupInfo;
             res.send(response);
           });
         });
@@ -127,11 +131,11 @@ function getToken(url, amUser, amPassword, callback) {
   });
 }
 
-function createResourceType(token, json, callback) {
+function createResourceType(token, body, callback) {
   const url = "http://localhost:8080/openam/json/realms/root/resourcetypes/?_action=create";
 
   const resourceInfo = JSON.stringify({
-    name: "ATLAS",
+    name: body.resourceName,
     actions: {
       "approvals-menu": true,
       "settings-menu": true,
@@ -146,7 +150,7 @@ function createResourceType(token, json, callback) {
       "actions-menu": true,
       "self-diagnosis-menu": true
     },
-    patterns: ["http://localhost:80/layout/actions/request-type"],
+    patterns: [body.resourcePattern],
   });
 
   const options = {
@@ -166,11 +170,11 @@ function createResourceType(token, json, callback) {
   });
 }
 
-function createPolicySet(token, resourceTypeUuid, json, callback) {
+function createPolicySet(token, resourceTypeUuid, body, callback) {
   console.log(token);
   const url = "http://localhost:8080/openam/json/realms/root/applications/?_action=create";
   const policyInfo = JSON.stringify({
-    name: "mypolicyset",
+    name: body.policySetName,
     resourceTypeUuids: [resourceTypeUuid],
     realm: "/",
     conditions: [
@@ -195,7 +199,7 @@ function createPolicySet(token, resourceTypeUuid, json, callback) {
       "Session",
     ],
     applicationType: "iPlanetAMWebAgentService",
-    description: "My example policy set.",
+    description: body.policySetDescription,
     resourceComparator: "com.sun.identity.entitlement.URLResourceName",
     subjects: [
       "Policy",
@@ -234,7 +238,7 @@ function createPolicySet(token, resourceTypeUuid, json, callback) {
   });
 }
 
-function addPolicyToPolicySet(token, resourceTypeUuid, policySetName, json, callback) {
+function addPolicyToPolicySet(token, resourceTypeUuid, policySetName, body, callback) {
   console.log(resourceTypeUuid, policySetName);
   const url = "http://localhost:8080/openam/json/realms/root/policies?_action=create";
   const options = {
@@ -246,9 +250,9 @@ function addPolicyToPolicySet(token, resourceTypeUuid, policySetName, json, call
       "Accept-API-Version": "resource=1.0",
     },
     body: JSON.stringify({
-      "name": "mypolicy",
+      "name": body.policyName,
       "active": true,
-      "description": "My Policy.",
+      "description": body.policyDescription,
       "applicationName": policySetName,
       "actionValues": {
         "approvals-menu": true,
