@@ -347,7 +347,7 @@ function addUserToGroup(token, username, groupname, callback) {
   console.log(`addUserToGroup ${username} ${groupname}`);
   const url = `http://localhost:8080/openam/json/realms/root/groups/${groupname}`;
   console.log(`url ${url}`);
-  const members = [`uid=${groupname},ou=user,dc=openam,dc=forgerock,dc=org`];
+  const members = [`uid=${username},ou=user,dc=openam,dc=forgerock,dc=org`];
   console.log(`members ${members}`);
   const createGroupInfo = JSON.stringify({
     uniquemember: members
