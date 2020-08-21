@@ -34,7 +34,7 @@ app
     const url =
       "http://localhost:8080/openam/json/realms/root/authenticate?goto=http://use1alx223.apexsct.net/";
     const amUser = "amAdmin";
-    const amPassword = "rootroot";
+    const amPassword = "11111111";
     let response = {
       resourceType: {},
       policySet: {},
@@ -48,7 +48,7 @@ app
         createPolicySet(loginInfo.tokenId, resourceTypeInfo.uuid, req.body, function (createPolicySetResult) {
           const policySetInfo = JSON.parse(createPolicySetResult);
           response.policySet = policySetInfo;
-          addPolicyToPolicySet(loginInfo.tokenId, resourceTypeInfo.uuid, policySetInfo.name,  req.body, function (addPolicyToPolicySetResult) {
+          addPolicyToPolicySet(loginInfo.tokenId, resourceTypeInfo.uuid, policySetInfo.name, req.body, function (addPolicyToPolicySetResult) {
             const policySetPolicyInfo = JSON.parse(createPolicySetResult);
             response.policySetPolicy = policySetPolicyInfo;
             res.send(response);
@@ -66,7 +66,7 @@ app
     const url =
       "http://localhost:8080/openam/json/realms/root/authenticate?goto=http://use1alx223.apexsct.net/";
     const amUser = "amAdmin";
-    const amPassword = "rootroot";
+    const amPassword = "11111111";
     let response = {
       username: "",
       realm: "",
@@ -268,9 +268,7 @@ function addPolicyToPolicySet(token, resourceTypeUuid, policySetName, body, call
         "actions-menu": true,
         "self-diagnosis-menu": true
       },
-      "resources": [
-        "http://localhost:80/layout/actions/request-type"
-      ],
+      "resources": body.resources,
       "subject": {
         "type": "AND",
         "subjects": [
