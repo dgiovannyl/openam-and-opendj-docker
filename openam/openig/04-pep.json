@@ -1,0 +1,47 @@
+{
+    "handler": {
+      "type": "DispatchHandler",
+      "config": {
+        "bindings": [
+          {
+            "condition": "${request.cookies['iPlanetDirectoryPro'] == null}",
+            "handler": {
+              "type": "StaticResponseHandler",
+              "config": {
+                "status": 302,
+                "reason": "Found",
+                "headers": {
+                  "Location": [
+                    "http://openig.mydomain.com:8080/openam/XUI/#login/&goto=${urlEncode(contexts.router.originalUri)}"
+                  ]
+                },
+                "entity": "Redirecting to OpenAM..."
+              }
+            }
+          },
+          {
+            "comment": "This condition is optional, but included for clarity.",
+            "condition": "${request.cookies['iPlanetDirectoryPro'] != null}",
+            "handler": {
+              "type": "Chain",
+              "config": {
+                "filters": [
+                  {
+                    "type": "PolicyEnforcementFilter",
+                    "config": {
+                      "openamUrl": "http://openig.mydomain.com:8080/openam/",
+                      "pepUsername": "policyadmin",
+                      "pepPassword": "policyadmin",
+                      "ssoTokenSubject": "${request.cookies['iPlanetDirectoryPro'][0].value}"
+                    }
+                  }
+                ],
+                "handler": "ClientHandler"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "condition": "${matches(request.uri.path, '^/home')}"
+  }
